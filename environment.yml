@@ -10,3 +10,4 @@ dependencies:
   - seaborn
   - python=3.7
   - tqdm
+  - h5py
