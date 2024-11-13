@@ -4,8 +4,9 @@ channels:
 dependencies:
   - astropy
   - jupyterlab
+  - ipywidgets
   - arviz
-  - pystan
+  - cmdstanpy
   - seaborn
   - python=3
   - tqdm

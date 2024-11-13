@@ -1,7 +1,7 @@
 functions {
-  real mp_mt_likelihood_lpdf(real[] mt_mean, real[] f, real[] mp, real[] mt, real[] mt_std) {
+  real mp_mt_likelihood_lpdf(array[] real mt_mean, array[] real f, array[] real mp, array[] real mt, array[] real mt_std) {
     int n = size(mt_mean);
-    real lps[n];
+    array[n] real lps;
 
     for (i in 1:n) {
       real mt_m_mp = mt[i] - mp[i];
@@ -17,9 +17,9 @@ functions {
     return sum(lps);
   }
 
-  real mp_q_likelihood_lpdf(real[] q_mean, real[] f, real[] mp, real[] q, real[] q_std) {
+  real mp_q_likelihood_lpdf(array[] real q_mean, array[] real f, array[] real mp, array[] real q, array[] real q_std) {
     int n = size(q_mean);
-    real lps[n];
+    array[n] real lps;
 
     for (i in 1:n) {
       real opq = 1.0 + q[i];
@@ -34,13 +34,18 @@ functions {
     return sum(lps);
   }
 
-  real two_gaussian_pop_lpdf(real[] mp, vector log_As, vector mus, vector sigmas, vector log_norms) {
-    int n = size(mp);
-    real lps[n];
+  real n_gaussian_pop_lpdf(array[] real mp, vector log_As, vector mus, vector sigmas, vector log_norms) {
+    int np = size(mp);
+    int ng = size(log_As);
+    array[np] real lps;
 
-    for (i in 1:n) {
-      lps[i] = log_sum_exp(log_As[1] + normal_lpdf(mp[i] | mus[1], sigmas[1]) - log_norms[1],
-                           log_As[2] + normal_lpdf(mp[i] | mus[2], sigmas[2]) - log_norms[2]);
+    for (i in 1:np) {
+      array[ng] real lp_temp;
+      for (j in 1:ng) {
+        lp_temp[j] = log_As[j] + normal_lpdf(mp[i] | mus[j], sigmas[j]) - log_norms[j];
+      }
+
+      lps[i] = log_sum_exp(lp_temp);
     }
 
     return sum(lps);
@@ -52,63 +57,49 @@ data {
   int n_mt;
   int n_q;
 
-  real mp_mean[n_gaussian];
-  real mp_std[n_gaussian];
+  int num_gaussian_components;
 
-  real f_mt[n_mt];
-  real mt_mean[n_mt];
-  real mt_std[n_mt];
+  array[n_gaussian] real mp_mean;
+  array[n_gaussian] real mp_std;
 
-  real f_q[n_q];
-  real q_mean[n_q];
-  real q_std[n_q];
-}
+  array[n_mt] real f_mt;
+  array[n_mt] real mt_mean;
+  array[n_mt] real mt_std;
 
-transformed data {
-  int x_i[0];
-
-  real x_r_mt[n_mt];
-  real x_r_q[n_q];
-
-  for (i in 1:n_mt) {
-    x_r_mt[i] = f_mt[i];
-  }
-
-  for (i in 1:n_q) {
-    x_r_q[i] = f_q[i];
-  }
+  array[n_q] real f_q;
+  array[n_q] real q_mean;
+  array[n_q] real q_std;
 }
 
 parameters {
   real<lower=0, upper=1> dmmax;
 
-  simplex[2] As;
-  real<lower=1, upper=2.5> mu1;
-  real<lower=mu1, upper=2.5> mu2;
-  vector<lower=0>[2] sigmas;
+  simplex[num_gaussian_components] As;
+  simplex[num_gaussian_components+1] delta_mus;
+  vector<lower=0>[num_gaussian_components] sigmas;
 
   /* For the Gaussian population */
-  real mp_gaussian_raw[n_gaussian];
+  array[n_gaussian] real mp_gaussian_raw;
 
   /* Same, but for measurements of f and mt. */
-  real<lower=0, upper=1> mp_mt_raw[n_mt];
-  real<lower=0> mt_raw[n_mt];
+  array[n_mt] real<lower=0, upper=1> mp_mt_raw;
+  array[n_mt] real<lower=0> mt_raw;
 
   /* Same but for measurements of f and q. */
-  real<lower=0> mp_q_raw[n_q];
-  real q_raw[n_q];
+  array[n_q] real<lower=0> mp_q_raw;
+  array[n_q] real q_raw;
 }
 
 transformed parameters {
   real mmax;
-  vector[2] mus = to_vector({mu1, mu2});
-  vector[2] log_norms;
-  real mp_gaussian[n_gaussian];
-  real mp_mt[n_mt];
-  real mp_mt_logjac[n_mt];
-  real mt[n_mt];
-  real mp_q[n_q];
-  real q[n_q];
+  vector[num_gaussian_components] mus;
+  vector[num_gaussian_components] log_norms;
+  array[n_gaussian] real mp_gaussian;
+  array[n_mt] real mp_mt;
+  array[n_mt] real mp_mt_logjac;
+  array[n_mt] real mt;
+  array[n_q] real mp_q;
+  array[n_q] real q;
 
   for (i in 1:n_gaussian) {
     mp_gaussian[i] = mp_mean[i] + mp_std[i]*mp_gaussian_raw[i];
@@ -137,22 +128,30 @@ transformed parameters {
     real mg = max(mp_gaussian);
     real mst = max(mp_mt);
     real mq = max(mp_q);
-    real ms[3] = {mg, mst, mq};
+    array[3] real ms = {mg, mst, mq};
     mmax = max(ms) + dmmax;
   }
 
-  for (i in 1:2) {
+  /* 1 < mus < 2.5
+
+  delta_mus is a simplex with num_gaussian_components+1 elements, so that we
+  guarantee that the mus are in the range 1 < mus < 2.5.
+  */
+  mus[1] = 1 + delta_mus[1];
+  for (i in 2:num_gaussian_components) {
+    mus[i] = mus[i-1] + (2.5-1)*delta_mus[i];
+  }
+
+  for (i in 1:num_gaussian_components) {
     log_norms[i] = log_diff_exp(normal_lcdf(mmax | mus[i], sigmas[i]),
                                 normal_lcdf(0 | mus[i], sigmas[i]));
   }
 }
 
 model {
-  vector[2] log_As = log(As);
+  vector[num_gaussian_components] log_As = log(As);
 
-  real lpsg[n_gaussian];
-  // real lpsm[n_mt];
-  // real lpsq[n_q];
+  array[n_gaussian] real lpsg;
 
   /* As long as alpha = beta, this is the same as A[1] ~ beta(2*alpha-1,
   /* 2*beta-1), or p(A[1]) ~ A[1]^(2*alpha-2)(1-A[1])^(2*alpha-2) */
@@ -163,13 +162,13 @@ model {
   sigmas ~ normal(0, 2);
 
   /* Priors on mp; for mt and q, prior is flat. */
-  mp_gaussian ~ two_gaussian_pop(log_As, mus, sigmas, log_norms);
+  mp_gaussian ~ n_gaussian_pop(log_As, mus, sigmas, log_norms);
   /* Jacobian to mp_gaussian_raw. */
   target += -sum(log(mp_std));
-  mp_mt ~ two_gaussian_pop(log_As, mus, sigmas, log_norms);
+  mp_mt ~ n_gaussian_pop(log_As, mus, sigmas, log_norms);
   /* Jacobian mp_mt to mp_mt_raw */
   target += sum(mp_mt_logjac);
-  mp_q ~ two_gaussian_pop(log_As, mus, sigmas, log_norms);
+  mp_q ~ n_gaussian_pop(log_As, mus, sigmas, log_norms);
 
   /* Likelihoods */
   mp_mean ~ normal(mp_gaussian, mp_std);
@@ -179,16 +178,17 @@ model {
 
 generated quantities {
   real mp_draw;
+  real x = uniform_rng(0,1);
 
-  if (uniform_rng(0,1) < As[1]) {
-    mp_draw = -1.0;
-    while ((mp_draw < 0) || (mp_draw > mmax)) {
-      mp_draw = normal_rng(mus[1], sigmas[1]);
-    }
-  } else {
-    mp_draw = -1.0;
-    while ((mp_draw < 0) || (mp_draw > mmax)) {
-      mp_draw = normal_rng(mus[2], sigmas[2]);
+  for (i in 1:num_gaussian_components) {
+    if (x < As[i]) {
+      mp_draw = -1.0;
+      while ((mp_draw < 0) || (mp_draw > mmax)) {
+        mp_draw = normal_rng(mus[i], sigmas[i]);
+      }
+      break;
+    } else {
+      x -= As[i];
     }
   }
 }

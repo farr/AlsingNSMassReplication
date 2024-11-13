@@ -1,3 +1,10 @@
+# cmdstan executables
+AlsingReconstruction
+
+# LaTeX Ignores
+aasjournal.bst
+aastex631.cls
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
