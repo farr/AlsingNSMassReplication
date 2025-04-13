@@ -1,0 +1,53 @@
+# stan_version_major = 2
+# stan_version_minor = 36
+# stan_version_patch = 0
+# model = AlsingReconstruction_model
+# start_datetime = 2025-04-13 00:23:48 UTC
+# method = sample (Default)
+#   sample
+#     num_samples = 1000 (Default)
+#     num_warmup = 1000 (Default)
+#     save_warmup = false (Default)
+#     thin = 1 (Default)
+#     adapt
+#       engaged = true (Default)
+#       gamma = 0.05 (Default)
+#       delta = 0.8 (Default)
+#       kappa = 0.75 (Default)
+#       t0 = 10 (Default)
+#       init_buffer = 75 (Default)
+#       term_buffer = 50 (Default)
+#       window = 25 (Default)
+#       save_metric = false (Default)
+#     algorithm = hmc (Default)
+#       hmc
+#         engine = nuts (Default)
+#           nuts
+#             max_depth = 10 (Default)
+#         metric = diag_e (Default)
+#         metric_file =  (Default)
+#         stepsize = 1 (Default)
+#         stepsize_jitter = 0 (Default)
+#     num_chains = 1 (Default)
+# id = 2
+# data
+#   file = /var/folders/by/tlp8gdq17q72kgysbfmtlzp40000gn/T/tmpatiag3zh/8mfxxl3c.json
+# init = 2 (Default)
+# random
+#   seed = 7432
+# output
+#   file = /Users/aryannaschiebelbein/Library/CloudStorage/OneDrive-UniversityofToronto/AlsingNSMassReplication_gaps/aryanna/debug_output/AlsingReconstruction-20250412202348_2.csv
+#   diagnostic_file =  (Default)
+#   refresh = 100 (Default)
+#   sig_figs = -1 (Default)
+#   profile_file = profile.csv (Default)
+#   save_cmdstan_config = false (Default)
+# num_threads = 1 (Default)
+# stanc_version = stanc3 v2.36.0
+# stancflags = --filename-in-msg=AlsingReconstruction.stan
+lp__,accept_stat__,stepsize__,treedepth__,n_leapfrog__,divergent__,energy__,dmmax,As.1,As.2,delta_mus.1,delta_mus.2,delta_mus.3,sigmas.1,sigmas.2,mp_gaussian_raw.1,mp_gaussian_raw.2,mp_gaussian_raw.3,mp_gaussian_raw.4,mp_gaussian_raw.5,mp_gaussian_raw.6,mp_gaussian_raw.7,mp_gaussian_raw.8,mp_gaussian_raw.9,mp_gaussian_raw.10,mp_gaussian_raw.11,mp_gaussian_raw.12,mp_gaussian_raw.13,mp_mt_raw.1,mp_mt_raw.2,mp_mt_raw.3,mp_mt_raw.4,mp_mt_raw.5,mp_mt_raw.6,mp_mt_raw.7,mp_mt_raw.8,mt_raw.1,mt_raw.2,mt_raw.3,mt_raw.4,mt_raw.5,mt_raw.6,mt_raw.7,mt_raw.8,mmax,mus.1,mus.2,log_norms.1,log_norms.2,mp_gaussian.1,mp_gaussian.2,mp_gaussian.3,mp_gaussian.4,mp_gaussian.5,mp_gaussian.6,mp_gaussian.7,mp_gaussian.8,mp_gaussian.9,mp_gaussian.10,mp_gaussian.11,mp_gaussian.12,mp_gaussian.13,mp_mt.1,mp_mt.2,mp_mt.3,mp_mt.4,mp_mt.5,mp_mt.6,mp_mt.7,mp_mt.8,mp_mt_logjac.1,mp_mt_logjac.2,mp_mt_logjac.3,mp_mt_logjac.4,mp_mt_logjac.5,mp_mt_logjac.6,mp_mt_logjac.7,mp_mt_logjac.8,mt.1,mt.2,mt.3,mt.4,mt.5,mt.6,mt.7,mt.8,mp_draw,x
+# Adaptation terminated
+# Step size = 0.000514449
+# Diagonal elements of inverse mass matrix:
+# 5.3024, 0.53032, 0.00977619, 3.11379, 0.642239, 1.22252, 0.88759, 0.519694, 0.984632, 1.13908, 0.799044, 1.05595, 0.876048, 0.621779, 1.06889, 0.918945, 0.939034, 1.10546, 0.343095, 3.0313, 4.17813, 1.74311, 6.3884, 2.18468, 0.530935, 3.97847, 7.88663, 1.38327, 0.787306, 1.41527, 1.18161, 0.982692, 1.31322, 0.330359, 1.42157
+64.44,0.521399,0.000514449,10,1023,0,-48.9552,0.000110536,0.826187,0.173813,0.405569,0.330991,0.263439,0.0715616,0.0122674,1.28594,-0.3746,-1.91093,0.930311,-0.810152,0.707098,-1.40438,1.61234,0.570004,0.351652,-1.06507,-1.19504,-1.08208,0.887432,0.997866,0.732626,0.995024,0.880985,0.868927,0.995264,0.875788,1.01566,0.170875,1.05537,0.961131,0.0193798,0.133208,1.17148,0.401908,1.56278,1.40557,1.90206,-0.0141132,-386.685,1.37086,1.38003,1.56267,1.36745,1.43964,1.56254,1.30038,1.34674,1.32827,1.34346,1.33735,1.34,1.25343,1.44752,1.31399,1.29601,1.24467,1.43213,1.56256,1.45723,1.41145,0.489275,0.275201,0.570406,0.223859,0.485876,0.586825,0.381288,0.477247,2.56034,2.50684,2.71904,2.56883,2.57194,2.624,2.65144,2.59594,1.53194,0.519041
