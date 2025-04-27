@@ -75,7 +75,8 @@ parameters {
   real<lower=0, upper=1> dmmax;
 
   simplex[num_gaussian_components] As;
-  simplex[num_gaussian_components+1] delta_mus;
+  // Support both 1 or more components
+  vector<lower=0, upper=1>[num_gaussian_components] delta_mus;
 
   vector<lower=0>[num_gaussian_components] sigmas;
 
@@ -110,9 +111,7 @@ transformed parameters {
   for (i in 1:n_mt) {
     real mp_max;
     mt[i] = mt_mean[i] + mt_std[i]*mt_raw[i];
-
     if (mt[i] < f_mt[i]) reject("Gaussian total mass measurement permits inconsistent mass function!");
-
     mp_max = mt[i] - f_mt[i]^(1.0/3.0)*mt[i]^(2.0/3.0);
     mp_mt[i] = mp_max*mp_mt_raw[i];
     mp_mt_logjac[i] = log(mp_max);
@@ -133,14 +132,13 @@ transformed parameters {
     mmax = max(ms) + dmmax;
   }
 
-  /* 1 < mus < 2.5
-
-  delta_mus is a simplex with num_gaussian_components+1 elements, so that we
-  guarantee that the mus are in the range 1 < mus < 2.5.
-  */
-  mus[1] = 1 + delta_mus[1];
-  for (i in 2:num_gaussian_components) {
-    mus[i] = mus[i-1] + (2.5-1)*delta_mus[i];
+  if (num_gaussian_components == 1) {
+    mus[1] = 1 + 1.5 * delta_mus[1];  // reuse delta_mus[1] from a simplex<lower=0>[1] (redefined as a real)
+  } else {
+    mus[1] = 1 + delta_mus[1];
+    for (i in 2:num_gaussian_components) {
+      mus[i] = mus[i-1] + (2.5-1)*delta_mus[i];
+    }
   }
 
   for (i in 1:num_gaussian_components) {
@@ -148,6 +146,7 @@ transformed parameters {
                                 normal_lcdf(0 | mus[i], sigmas[i]));
   }
 }
+
 
 model {
   vector[num_gaussian_components] log_As = log(As);
@@ -160,7 +159,7 @@ model {
 
   /* Flat prior on `dmmax` => flat prior on `mmax`, conditioned on all the `mp`s. */
   mus ~ normal(1.75, 1);
-  sigmas ~ normal(0, 2);
+  sigmas ~ normal(0.01, 2);
 
   /* Priors on mp; for mt and q, prior is flat. */
   mp_gaussian ~ n_gaussian_pop(log_As, mus, sigmas, log_norms);
